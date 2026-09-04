@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Обработка персональных данных — Собака и Я</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Karla:wght@400;500;700&display=swap');
+  :root{
+    --bg:#F1F4EE; --surface:#FDFDFA; --surface-raised:#FFFFFF;
+    --ink:#1F2E22; --ink-soft:#52624F; --ink-faint:#8B9787;
+    --accent:#C4841B; --accent-ink:#4A3208; --accent-soft:#F4E3C2;
+    --line:#DCE3D3; --shadow:rgba(31,46,34,0.14);
+    --mark-bg:#FDF3E3; --mark-ink:#7A4B12;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#141D17; --surface:#1C2820; --surface-raised:#223026;
+      --ink:#ECF0E6; --ink-soft:#AFBCA8; --ink-faint:#718070;
+      --accent:#E3A63D; --accent-ink:#2A1C05; --accent-soft:#3B2F14;
+      --line:#2B3A2E; --shadow:rgba(0,0,0,0.45);
+      --mark-bg:#3B2F14; --mark-ink:#F0C77C;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#141D17; --surface:#1C2820; --surface-raised:#223026;
+    --ink:#ECF0E6; --ink-soft:#AFBCA8; --ink-faint:#718070;
+    --accent:#E3A63D; --accent-ink:#2A1C05; --accent-soft:#3B2F14;
+    --line:#2B3A2E; --shadow:rgba(0,0,0,0.45);
+    --mark-bg:#3B2F14; --mark-ink:#F0C77C;
+  }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--bg); color:var(--ink); font-family:'Karla',sans-serif; font-size:15px; line-height:1.65; }
+  .wrap{ max-width:720px; margin:0 auto; padding:32px 20px 80px; }
+  a.back{ display:inline-block; margin-bottom:20px; color:var(--ink-soft); text-decoration:none; font-size:14px; }
+  a.back:hover{ text-decoration:underline; }
+  h1{ font-family:'Fraunces',serif; font-weight:700; font-size:26px; margin:0 0 6px; color:var(--ink); }
+  .updated{ color:var(--ink-faint); font-size:13px; margin-bottom:28px; }
+  h2{ font-family:'Fraunces',serif; font-weight:600; font-size:17px; margin:28px 0 8px; color:var(--ink); }
+  p, li{ color:var(--ink-soft); }
+  ul{ padding-left:20px; margin:8px 0; }
+  li{ margin-bottom:6px; }
+  .card{ background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:20px 22px; box-shadow:0 6px 16px var(--shadow); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="/">← Вернуться в приложение</a>
+  <h1>Обработка персональных данных</h1>
+  <div class="updated">Действует с 4 сентября 2026 года · составлено в соответствии с 152-ФЗ «О персональных данных»</div>
+
+  <div class="card">
+    <h2>1. Оператор персональных данных</h2>
+    <p>Орлова Анна Дмитриевна, физическое лицо (без статуса ИП/самозанятого на данный момент).<br>Контактный email по вопросам персональных данных: <a href="mailto:anna.d.orlova@gmail.com">anna.d.orlova@gmail.com</a></p>
+
+    <h2>2. Цели обработки</h2>
+    <ul>
+      <li>Регистрация и вход в личный кабинет.</li>
+      <li>Хранение и синхронизация профиля собаки между вашими устройствами.</li>
+      <li>Обеспечение работы и безопасности сервиса.</li>
+    </ul>
+
+    <h2>3. Правовое основание</h2>
+    <p>Обработка данных ведётся на основании вашего согласия, которое вы даёте при регистрации (отметкой чекбокса).</p>
+
+    <h2>4. Какие данные обрабатываются</h2>
+    <p><b>Персональные данные:</b></p>
+    <ul>
+      <li>адрес электронной почты;</li>
+      <li>пароль — хранится не в исходном виде, а в виде необратимого хеша;</li>
+      <li>фотография питомца — если на ней присутствуют люди, она также считается персональными данными.</li>
+    </ul>
+    <p><b>Не персональные данные:</b> кличка и дата рождения питомца сами по себе к персональным данным не относятся.</p>
+
+    <h2>5. Где хранятся данные</h2>
+    <p>На серверах хостинг-провайдера Timeweb Cloud, расположенных на территории РФ (ч. 5 ст. 18 152-ФЗ). Трансграничная передача данных не осуществляется. Данные третьим лицам не продаются и не передаются, за исключением технического хостинг-провайдера.</p>
+
+    <h2>6. Меры безопасности</h2>
+    <p>Пароль хранится в виде необратимого хеша, соединение защищено (HTTPS/TLS), авторизация — через защищённый httpOnly cookie-файл, недоступный для чтения скриптами на странице.</p>
+
+    <h2>7. Возрастное ограничение</h2>
+    <p>Сервис предназначен для лиц старше 18 лет. Регистрация лиц младше 18 лет не допускается.</p>
+
+    <h2>8. Срок хранения</h2>
+    <p>Данные хранятся, пока существует ваш аккаунт. Вы можете запросить удаление аккаунта и всех связанных данных, написав на email из раздела 1.</p>
+
+    <h2>9. Ваши права</h2>
+    <ul>
+      <li>Получить информацию об обработке своих данных — ответ в течение 10 рабочих дней.</li>
+      <li>Потребовать уточнения, блокирования или удаления данных — в течение 10 рабочих дней либо мотивированный ответ в срок до 30 дней.</li>
+      <li>Отозвать согласие на обработку персональных данных в любой момент.</li>
+    </ul>
+    <p>Обращения рассматриваются только с email, указанного в вашем аккаунте, — это нужно для подтверждения, что запрос пришёл именно от вас.</p>
+
+    <h2>10. Файлы cookie</h2>
+    <p>Используется один технический cookie-файл для поддержания сессии входа. Рекламные и аналитические cookie не используются.</p>
+
+    <h2>11. Рассылки</h2>
+    <p>Сейчас сервис не отправляет рекламные или информационные рассылки, и согласие на них не запрашивается. Если рассылки появятся в будущем — на них будет запрошено отдельное согласие, не совмещённое с этим документом.</p>
+
+    <h2>12. Изменения документа</h2>
+    <p>Оператор вправе вносить изменения в настоящий документ. Актуальная версия всегда доступна по этой ссылке в приложении.</p>
+  </div>
+</div>
+</body>
+</html>

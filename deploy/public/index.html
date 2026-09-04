@@ -249,6 +249,12 @@
   .agechip.active{ border-color:var(--accent); background:var(--accent-soft); color:var(--accent-ink); }
   .age-filter-note{ font-size:12px; color:var(--ink-faint); margin-bottom:14px; }
   .age-filter-note a{ color:var(--accent); cursor:pointer; }
+  .pup-preview-banner{ font-size:12px; color:var(--accent-ink); background:var(--accent-soft); border-radius:10px; padding:8px 10px; margin-bottom:10px; line-height:1.5; }
+  .pup-preview-banner a{ color:var(--accent-ink); text-decoration:underline; cursor:pointer; font-weight:700; }
+  .pup-preview-toggle-row{ margin:8px 0 12px; text-align:center; }
+  .pup-preview-toggle-row a{ font-size:12.5px; color:var(--accent); cursor:pointer; }
+  .pup-preview-chiprow{ margin-top:10px; justify-content:center; }
+  .pup-preview-chiprow[hidden]{ display:none; }
   .pup-cabinet{ margin-top:16px; border:1px solid var(--line); background:var(--surface); border-radius:16px; padding:16px; }
   .pup-cabinet-title{ font-family:'Fraunces',serif; font-size:15px; font-weight:600; color:var(--ink); margin-bottom:10px; }
   .dogchiprow{ display:flex; flex-wrap:wrap; align-items:flex-start; gap:10px; margin-bottom:14px; }
@@ -268,6 +274,7 @@
   .pup-photo-circle img{ width:100%; height:100%; object-fit:cover; display:block; }
   .pup-photo-circle span{ font-size:9.5px; color:var(--ink-faint); text-align:center; line-height:1.2; }
   .pup-photo-row .pup-photo-hint{ font-size:12.5px; color:var(--ink-faint); }
+  .photo-consent-note{ font-size:10.5px; color:var(--ink-faint); line-height:1.5; margin:-4px 0 10px; }
   .pup-silhouette-row img.pup-photo-big{ border-radius:50%; object-fit:cover; border:2px solid var(--line); }
   .pup-dob-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
   .pup-dob-row input[type=text]{ border:1px solid var(--line); border-radius:10px; padding:7px 10px; font-family:'Karla',sans-serif; font-size:12.5px; color:var(--ink); background:var(--surface-raised); width:140px; }
@@ -310,6 +317,9 @@
   .auth-error{ font-size:12px; color:#B4442E; min-height:14px; }
   .auth-submit{ width:100%; background:var(--accent); color:var(--accent-ink); border:none; border-radius:12px; font-family:'Karla',sans-serif; font-weight:700; font-size:14px; padding:12px 14px; cursor:pointer; margin-top:4px; }
   .auth-submit:hover{ opacity:0.92; }
+  .auth-checkbox-row{ display:flex; gap:8px; align-items:flex-start; font-size:11.5px; color:var(--ink-faint); line-height:1.5; margin-top:10px; cursor:pointer; }
+  .auth-checkbox-row input{ flex:none; width:16px; height:16px; margin-top:2px; accent-color:var(--accent); cursor:pointer; }
+  .auth-checkbox-row a{ color:var(--accent); text-decoration:underline; cursor:pointer; }
   .auth-loggedin-row{ display:flex; align-items:center; gap:12px; padding:14px 0; }
   .auth-avatar-circle{ flex:none; width:44px; height:44px; border-radius:50%; background:var(--accent-soft); color:var(--accent-ink); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:16px; }
   .auth-loggedin-email{ font-weight:700; font-size:14px; color:var(--ink); word-break:break-all; }
@@ -368,6 +378,7 @@
                 <div class="pup-photo-circle" id="pup-photo-circle" onclick="document.getElementById('pup-photo-input').click()"><span>+ фото</span></div>
                 <div class="pup-photo-hint">Фото для выбранной собаки</div>
               </div>
+              <div class="photo-consent-note">Загружая фото, вы подтверждаете, что обладаете правами на него, а если на фото есть люди — что получили их согласие на использование изображения в сервисе.</div>
               <input type="file" id="pup-photo-input" accept="image/*" style="display:none" onchange="handlePupPhotoUpload(this.files[0])">
               <div class="pup-dob-row">
                 <label>Дата рождения собаки</label>
@@ -1095,31 +1106,85 @@
   }
 
   var AGE_STAGES = [
-    {key:"2-4", label:"2-4 мес"},
-    {key:"4-7", label:"4-7 мес"},
-    {key:"7-12", label:"7-12 мес"},
+    {key:"2", label:"2 мес"},
+    {key:"3", label:"3 мес"},
+    {key:"4", label:"4 мес"},
+    {key:"5", label:"5 мес"},
+    {key:"6", label:"6 мес"},
+    {key:"7", label:"7 мес"},
+    {key:"8", label:"8 мес"},
+    {key:"9", label:"9 мес"},
+    {key:"10", label:"10 мес"},
+    {key:"11", label:"11 мес"},
+    {key:"12", label:"12 мес"},
     {key:"1+", label:"1 год и более"}
   ];
+  // Источники по физическому и поведенческому развитию: AKC, Royal Canin, Purina One (сентябрь 2026);
+  // по поведенческим периодам — PAWS, Winston-Salem Dog Trainers (сентябрь 2026). Эти источники описывают
+  // укрупнённые окна (8-16 недель, 4-6 мес, 6-9 мес, 9-12 мес, 1 год+) — разбивка по каждому отдельному
+  // месяцу внутри этих окон достроена нами самостоятельно (не из отдельного источника на каждый месяц).
+  // Рекомендации по командам — на основе общей логики этих же источников (AKC, dogtrainermatch.com,
+  // сентябрь 2026), адаптированы под список команд, которые уже есть в разделе "Тренировки для собак".
   var STAGE_INFO = {
-    "2-4": {
-      behavior:"Это пик социализации: щенок особенно легко и надолго запоминает свой первый опыт — знакомства с людьми, другими собаками, звуками, новыми местами. Хорошо, если этот опыт в основном позитивный. Примерно на 8-10 неделе жизни у многих щенков бывает короткий «период страха» — то, что напугало именно в эти дни, может запомниться сильнее обычного. Если щенок в это время чего-то испугался, лучше не утешать чрезмерно (это может закрепить страх), а спокойно переключить на игру или лакомство и не давить.",
-      physical:"К 5-6 неделям у щенка уже прорезались все молочные зубы (около 28 штук) — в этом возрасте они как раз в деле. Тело растёт неравномерно: лапы, уши или голова могут временно казаться «не по размеру» — это нормально. Кости и суставы ещё мягкие и пластичные, зоны роста в них открыты, поэтому важно избегать прыжков с высоты и долгих нагрузок.",
-      commands:"Список команд, которые подойдут для этого возраста, пришлите, и я добавлю его сюда."
+    "2": {
+      behavior:"Пик социализации: щенок особенно легко и надолго запоминает первый опыт — знакомства с людьми, другими собаками, звуками, новыми местами. Хорошо, если этот опыт в основном позитивный. Примерно на 8-10 неделе жизни у многих щенков бывает короткий «период страха» — то, что напугало именно в эти дни, может запомниться сильнее обычного. Если щенок испугался, лучше не утешать чрезмерно (это может закрепить страх), а спокойно переключить внимание на игру и не давить.",
+      physical:"К 5-6 неделям у щенка уже прорезались все молочные зубы (около 28 штук). Тело растёт неравномерно: лапы, уши или голова могут временно казаться «не по размеру» — это нормально. Кости и суставы ещё мягкие и пластичные, зоны роста в них открыты, поэтому важно избегать прыжков с высоты и долгих нагрузок.",
+      commands:"Формальные команды пока не главное — важнее знакомство с кличкой и позитивный контакт с руками (взять на руки, осмотреть лапы и уши). Можно начинать закладывать основу «Сидеть» через приманку лакомством, без ожидания идеального выполнения."
     },
-    "4-7": {
-      behavior:"Начинается предподростковый и подростковый период: щенок становится увереннее и самостоятельнее, может дальше отходить от хозяина и меньше оглядываться на команды, которые раньше выполнял охотно — это не «испортился характер», а нормальный этап взросления, и стоит продолжать закреплять команды уже с отвлекающими факторами. Ближе к 6 месяцам у некоторых щенков возможен ещё один короткий «период страха» — то же правило: не паниковать вместе со щенком, спокойно и без давления показать, что ситуация безопасна.",
-      physical:"Идёт активная смена зубов: с 12-16 недель молочные зубы начинают выпадать, на их месте растут постоянные — к 6 месяцам смена обычно завершается (у взрослой собаки должно быть около 42 зубов). Если ближе к 6 месяцам молочный зуб не выпал сам — стоит показать собаку ветеринару. Скелет продолжает активно расти: у мелких пород к 6 месяцам рост уже примерно на 75%, у средних и крупных — на 60-66%, поэтому зоны роста костей ещё открыты и высокие нагрузки (прыжки, длинный бег) пока лучше дозировать.",
-      commands:"Список команд, которые подойдут для этого возраста, пришлите, и я добавлю его сюда."
+    "3": {
+      behavior:"Щенок уже освоился дома и продолжает активно исследовать мир — самое время знакомить с новыми поверхностями, звуками и людьми, пока идёт окно социализации. Если во время игры щенок слишком сильно прикусывает руку, лучше не одёргивать резко, а переключить его на игрушку.",
+      physical:"Скелет активно растёт, зоны роста костей всё ещё открыты. Молочные зубы пока на месте, но уже близко к смене — сильную нагрузку на очень твёрдые предметы для жевания пока лучше ограничивать.",
+      commands:"«Сидеть» закрепляем в разных комнатах дома. Вводим «Домик» — приучение к переноске или лежанке как к своему безопасному месту, куда всегда можно вернуться."
     },
-    "7-12": {
-      behavior:"Разгар «подросткового возраста»: собаке нужно много стимуляции (прогулки, задачи, игры), а терпимость к скуке низкая — от этого нередко появляются нежелательные способы «развлечь себя» (грызть, копать, лаять). Половое созревание может добавлять «пробующее» поведение, похожее на подростковое упрямство у людей. Это возраст, когда особенно важно не отпускать без поводка в неогороженных местах — самостоятельность и интерес к миру уже большие, а надёжность команд «ко мне» ещё может подводить.",
-      physical:"Смена зубов на постоянные к этому возрасту уже должна была завершиться. Скорость роста скелета зависит от размера породы: у мелких пород (примерно до 10 кг) рост в это время завершается, у средних — рост тоже близится к завершению к 12 месяцам, а у крупных и гигантских пород кости и зоны роста ещё активны и продолжают формироваться. Мышечная масса и взрослые пропорции тела в этот период продолжают «дособираться».",
-      commands:"Список команд, которые подойдут для этого возраста, пришлите, и я добавлю его сюда."
+    "4": {
+      behavior:"Идёт последний отрезок «критического окна социализации» — оно постепенно закрывается примерно к 16 неделе, так что сейчас особенно ценно познакомить щенка с максимумом нового безопасного опыта: люди, поверхности, звуки, транспорт. Реакция на отдельные команды ещё может быть нестабильной — это нормально для этого возраста.",
+      physical:"Начинается смена зубов: молочные зубы начинают выпадать, на их месте растут постоянные. Скелет продолжает активно расти — высокие нагрузки (прыжки с высоты, длинный бег) пока лучше дозировать.",
+      commands:"«Лежать» — вводим тем же способом, что и «Сидеть», через приманку. «Ко мне» пока отрабатываем только дома, без отвлечений. «Жди» — начинаем с 1-2 секунд, не больше."
+    },
+    "5": {
+      behavior:"Начинается предподростковый период: щенок увереннее и самостоятельнее, может дальше отходить от хозяина и меньше оглядываться на команды, которые раньше выполнял охотно, — это не «испортился характер», а нормальный этап взросления.",
+      physical:"Смена зубов продолжается. Скелет и мышцы всё ещё активно растут, пропорции тела постепенно выравниваются, щенок больше походит на уменьшенную копию взрослой собаки.",
+      commands:"«Рядом» — начинаем ходьбу на поводке без натяжения на спокойных маршрутах. «Сидеть», «Лежать» и «Жди» закрепляем уже с лёгкими отвлечениями вокруг (звук, человек неподалёку)."
+    },
+    "6": {
+      behavior:"Ближе к 6 месяцам у некоторых щенков случается ещё один короткий «период страха» — то же правило, что и раньше: не паниковать вместе со щенком, спокойно и без давления показать, что ситуация безопасна.",
+      physical:"Смена зубов на постоянные обычно завершается к этому возрасту (у взрослой собаки должно быть около 42 зубов) — если молочный зуб не выпал сам, стоит показать собаку ветеринару. У мелких пород рост уже примерно на 75%, у средних и крупных — на 60-66%; зоны роста костей ещё открыты.",
+      commands:"«Дай» и «Нельзя» — реакция на запрещённые предметы и вещи со стола. «Жди» перед едой и игрой — хорошая тренировка самоконтроля в этом возрасте."
+    },
+    "7": {
+      behavior:"Разгар «подросткового возраста»: собаке нужно много стимуляции — прогулок, задач, игр, а терпимость к скуке низкая, отсюда нередко появляются «развлечения себя» вроде погрызть или покопать. Самостоятельность уже большая, а надёжность «Ко мне» ещё может подводить — без поводка в неогороженных местах пока рано.",
+      physical:"Смена зубов на постоянные уже должна была завершиться. Скорость роста скелета теперь сильно зависит от размера породы: у мелких пород рост близится к завершению, у крупных и гигантских кости и зоны роста ещё активны.",
+      commands:"«Ко мне» — увеличиваем дистанцию и добавляем лёгкие отвлечения. «Рядом» — пробуем на новых маршрутах прогулки, не только на привычных."
+    },
+    "8": {
+      behavior:"Половое созревание может добавлять «пробующее» поведение, похожее на подростковое упрямство у людей, — важно сохранять последовательность в правилах, а не смягчать их из жалости к собаке.",
+      physical:"Мышечная масса и взрослые пропорции тела продолжают «дособираться», особенно у пород покрупнее.",
+      commands:"«Дай лапу» и «Круть-Верть» — трюковые команды для интеллектуальной нагрузки, которая сейчас особенно нужна. «Жди» и «Домик» — постепенно увеличиваем длительность."
+    },
+    "9": {
+      behavior:"Собака всё ещё в подростковом возрасте, но постепенно лучше считывает контекст ситуации. Не отпускайте без поводка в неогороженных местах — самостоятельность и интерес к миру всё ещё большие.",
+      physical:"У мелких пород скелет постепенно заканчивает расти; у средних рост тоже близится к завершению; у крупных и гигантских пород кости и зоны роста ещё активны и продолжают формироваться.",
+      commands:"«Тык» и «Отойди» — команды на более тонкое управление вниманием и телом собаки. «Ко мне» тренируем на длинном поводке в местах с лёгкими отвлечениями."
+    },
+    "10": {
+      behavior:"Подростковое поведение у большинства пород постепенно идёт на спад: собака увереннее в незнакомой обстановке и быстрее успокаивается после стресса, чем несколько месяцев назад.",
+      physical:"У мелких и части средних пород рост уже близок к завершению — собака выглядит практически как взрослая. У крупных и гигантских пород кости и зоны роста всё ещё активны.",
+      commands:"«Ко мне» — пробуем без поводка в безопасном огороженном месте. «Рядом» — тренируем в местах с людьми и шумом (двор, парк)."
+    },
+    "11": {
+      behavior:"Собака увереннее ведёт себя в новых ситуациях, хотя у крупных и гигантских пород черты подросткового поведения (испытывание границ, всплески самостоятельности) ещё могут сохраняться дольше.",
+      physical:"У большинства мелких и средних пород видимый рост уже прекратился. У крупных пород рост скелета продолжается примерно до 12-18 месяцев, у гигантских — до 18-24 месяцев, так что их взрослая форма тела наступит ещё не скоро.",
+      commands:"«Неси» — апорт, подать предмет. Увеличиваем длительность «Жди» и «Домик» уже в отвлекающей обстановке (гости, шум)."
+    },
+    "12": {
+      behavior:"Ровно год — заметная граница для мелких и большинства средних пород: они уже фактически взрослые по поведению. Для крупных и особенно гигантских пород подростковые черты ещё могут сохраняться какое-то время.",
+      physical:"Год — заметная граница и физически: мелкие и большинство средних пород уже фактически взрослые по размеру. Для крупных и особенно гигантских пород это ещё середина пути роста скелета.",
+      commands:"Закрепляем все освоенные команды из списка в разных локациях и с разными отвлечениями. При желании — переходим к более сложным трюкам или спортивным активностям (аджилити, нюхательная работа)."
     },
     "1+": {
-      behavior:"У мелких пород к этому возрасту «подростковый» период обычно уже позади и поведение становится более стабильным и предсказуемым; у крупных и гигантских пород эмоциональное взросление наступает позже, и черты подросткового поведения (испытывание границ, всплески самостоятельности) могут сохраняться дольше — это не повод отступать от последовательности в правилах. Собака в этом возрасте лучше считывает контекст и быстрее восстанавливается после стресса, чем щенок.",
-      physical:"У мелких и большинства средних пород рост в этом возрасте уже полностью завершён — собака достигла взрослого размера. У крупных пород рост костей обычно продолжается примерно до 12-18 месяцев, а у гигантских — до 18-24 месяцев: зоны роста у них закрываются позже, и мышечная масса продолжает набираться дольше. Так что «взрослость» в физическом смысле у разных по размеру собак наступает не в один и тот же момент.",
-      commands:"Список команд, которые подойдут для этого возраста, пришлите, и я добавлю его сюда."
+      behavior:"«Взрослость» в поведенческом смысле у разных по размеру собак наступает не в один момент — у мелких пород обычно раньше, у крупных и гигантских позже. Собака лучше считывает контекст и увереннее ведёт себя в привычных ситуациях, чем щенком.",
+      physical:"«Взрослость» в физическом смысле тоже наступает не одновременно: мелкие и средние породы к этому времени уже полностью выросли, а крупные и особенно гигантские продолжают формироваться ещё несколько месяцев (кости — примерно до 18-24 месяцев у гигантских пород).",
+      commands:"Поддерживающая тренировка уже освоенных команд, новые трюки для умственной нагрузки, а при желании — специализированные активности (нюхательная работа, аджилити и т.п.) в зависимости от интересов и породы."
     }
   };
   var selectedAge = null;
@@ -1152,8 +1217,17 @@
     var months = (now.getFullYear() - dob.getFullYear())*12 + (now.getMonth() - dob.getMonth());
     if(now.getDate() < dob.getDate()) months -= 1;
     if(months < 0) months = 0;
-    var key = months < 4 ? "2-4" : months < 7 ? "4-7" : months < 12 ? "7-12" : "1+";
+    var key = months < 2 ? "2" : months < 12 ? String(months) : "1+";
     return {key:key, months:months};
+  }
+  // Старая укрупнённая разбивка возраста — используется только для фильтра карточек
+  // в разделе "Мы берём щенка" (там карточки размечены именно этими бакетами).
+  function bucketFromMonths(months){
+    return months < 4 ? "2-4" : months < 7 ? "4-7" : months < 12 ? "7-12" : "1+";
+  }
+  function bucketLabel(key){
+    var map = {"2-4":"2-4 мес", "4-7":"4-7 мес", "7-12":"7-12 мес", "1+":"1 год и более"};
+    return map[key] || '';
   }
 
   // --- Несколько собак: каждая {id, name, dob}, хранится в localStorage как список ---
@@ -1282,18 +1356,42 @@
 
     if(!active || !active.dob){
       selectedAge = null;
-      widgetEl.innerHTML = '<div class="age-filter-note" style="margin:4px 0 0">Впишите дату рождения собаки, чтобы увидеть этап её развития.</div>';
+      var noDobHtml = '<div class="age-filter-note" style="margin:4px 0 0">Впишите дату рождения собаки, чтобы увидеть её собственный этап развития — либо посмотрите любой возраст ниже, без привязки к дате.</div>';
+      var previewKeyNoDob = (pupPreviewStageKey && STAGE_INFO[pupPreviewStageKey]) ? pupPreviewStageKey : null;
+      noDobHtml += '<div class="pup-preview-toggle-row"><a onclick="togglePupPreviewChips()">Посмотреть любой возраст</a></div>'+
+        '<div class="agechiprow pup-preview-chiprow" id="pup-preview-chiprow" hidden>'+
+        AGE_STAGES.map(function(a){
+          return '<button class="agechip'+(previewKeyNoDob===a.key?' active':'')+'" onclick="setPupPreviewStage(\''+a.key+'\')">'+a.label+'</button>';
+        }).join('')+
+        '</div>';
+      if(previewKeyNoDob){
+        var infoNoDob = STAGE_INFO[previewKeyNoDob];
+        noDobHtml += '<div class="pup-preview-banner">Показан этап «'+ageLabel(previewKeyNoDob)+'».</div>'+
+          '<div class="pup-stage-desc">'+
+          '<div class="psd-item"><div class="psd-label">Поведение</div><div class="psd-text">'+infoNoDob.behavior+'</div></div>'+
+          '<div class="psd-item"><div class="psd-label">Физическое развитие</div><div class="psd-text">'+infoNoDob.physical+'</div></div>'+
+          '<div class="psd-item"><div class="psd-label">Какие команды подойдут</div><div class="psd-text">'+infoNoDob.commands+'</div></div>'+
+          '</div>';
+      }
+      widgetEl.innerHTML = noDobHtml;
+      if(pupPreviewChipsOpen){
+        var chipsElNoDob = document.getElementById('pup-preview-chiprow');
+        if(chipsElNoDob) chipsElNoDob.hidden = false;
+      }
       return;
     }
 
     var r = computeStageFromDOB(active.dob);
     var stageKey = r.key;
-    selectedAge = stageKey;
+    // selectedAge остаётся в старой "бакетной" схеме (2-4/4-7/7-12/1+) — под неё размечены
+    // карточки в разделе "Мы берём щенка"; для самого виджета этапа развития используется
+    // подробная помесячная разбивка (stageKey/STAGE_INFO), это два разных назначения одного возраста.
+    selectedAge = bucketFromMonths(r.months);
     var ageText = exactAgeText(r.months);
     var labelText = (active.name ? active.name+' — ' : '') + ageText;
 
     var idx = AGE_STAGES.map(function(a){return a.key;}).indexOf(stageKey);
-    var sizes = [40,54,70,88];
+    var sizes = [34,40,46,52,58,64,70,76,80,84,88,92];
     var html = '';
     if(active.photo){
       html += '<div class="pup-silhouette-row"><img class="pup-photo-big" src="'+active.photo+'" alt="" style="width:'+sizes[idx]+'px;height:'+sizes[idx]+'px"></div>';
@@ -1301,13 +1399,49 @@
       html += '<div class="pup-silhouette-row">'+dogSilhouetteSvg(sizes[idx])+'</div>';
     }
     html += '<div class="pup-stage-label">'+labelText+'</div>';
-    var info = STAGE_INFO[stageKey];
+
+    var previewKey = (pupPreviewStageKey && STAGE_INFO[pupPreviewStageKey]) ? pupPreviewStageKey : stageKey;
+    var info = STAGE_INFO[previewKey];
+    var isPreview = previewKey !== stageKey;
+
+    html += '<div class="pup-preview-toggle-row">'+
+      '<a onclick="togglePupPreviewChips()">Посмотреть другой возраст</a>'+
+      '</div>';
+    html += '<div class="agechiprow pup-preview-chiprow" id="pup-preview-chiprow" hidden>'+
+      AGE_STAGES.map(function(a){
+        return '<button class="agechip'+(previewKey===a.key?' active':'')+'" onclick="setPupPreviewStage(\''+a.key+'\')">'+a.label+'</button>';
+      }).join('')+
+      '</div>';
+
+    if(isPreview){
+      html += '<div class="pup-preview-banner">Показан этап «'+ageLabel(previewKey)+'» — это не текущий возраст'+(active.name ? ' '+active.name : '')+'. <a onclick="clearPupPreviewStage()">Показать актуальный возраст</a></div>';
+    }
     html += '<div class="pup-stage-desc">'+
       '<div class="psd-item"><div class="psd-label">Поведение</div><div class="psd-text">'+info.behavior+'</div></div>'+
       '<div class="psd-item"><div class="psd-label">Физическое развитие</div><div class="psd-text">'+info.physical+'</div></div>'+
       '<div class="psd-item"><div class="psd-label">Какие команды подойдут</div><div class="psd-text">'+info.commands+'</div></div>'+
       '</div>';
     widgetEl.innerHTML = html;
+    if(pupPreviewChipsOpen){
+      var chipsEl = document.getElementById('pup-preview-chiprow');
+      if(chipsEl) chipsEl.hidden = false;
+    }
+  }
+  var pupPreviewStageKey = null;
+  var pupPreviewChipsOpen = false;
+  function togglePupPreviewChips(){
+    pupPreviewChipsOpen = !pupPreviewChipsOpen;
+    var chipsEl = document.getElementById('pup-preview-chiprow');
+    if(chipsEl) chipsEl.hidden = !pupPreviewChipsOpen;
+  }
+  function setPupPreviewStage(key){
+    pupPreviewStageKey = key;
+    pupPreviewChipsOpen = true;
+    renderPupCabinet();
+  }
+  function clearPupPreviewStage(){
+    pupPreviewStageKey = null;
+    renderPupCabinet();
   }
   // Пересверяем этап с текущей датой раз в минуту (эквивалент проверки "каждый день в 0:00" —
   // страница не может сама разбудить закрытое приложение в полночь, но пока она открыта,
@@ -1334,7 +1468,7 @@
     var noteText = '';
     if(selectedAge){
       var activeForNote = getActiveDog();
-      var ageTextForNote = (activeForNote && activeForNote.dob) ? exactAgeText(computeStageFromDOB(activeForNote.dob).months) : ageLabel(selectedAge);
+      var ageTextForNote = (activeForNote && activeForNote.dob) ? exactAgeText(computeStageFromDOB(activeForNote.dob).months) : bucketLabel(selectedAge);
       noteText = 'Показаны карточки для возраста «'+ageTextForNote+'» — на основе профиля собаки на главной.';
     }
     document.getElementById('block3-age-note').innerHTML = noteText;
@@ -1559,6 +1693,11 @@
         if(errEl) errEl.textContent = 'Пароли не совпадают';
         return;
       }
+      var consentEl = document.getElementById('auth-consent-check');
+      if(!consentEl || !consentEl.checked){
+        if(errEl) errEl.textContent = 'Отметьте согласие с условиями ниже — без этого зарегистрироваться нельзя';
+        return;
+      }
     }
 
     authBusy = true;
@@ -1618,6 +1757,8 @@
     var isLogin = authTab==='login';
     var confirmFieldHtml = isLogin ? '' :
       '<div class="auth-field"><label>Повторите пароль</label><input type="password" id="auth-password-confirm" placeholder="Ещё раз пароль"></div>';
+    var consentHtml = isLogin ? '' :
+      '<label class="auth-checkbox-row"><input type="checkbox" id="auth-consent-check"><span>Мне исполнилось 18 лет. Я ознакомлен(а) и согласен(на) с <a href="/privacy.html" target="_blank" rel="noopener">Политикой обработки персональных данных</a> и даю согласие на обработку моих персональных данных на указанных в ней условиях.</span></label>';
     el.innerHTML =
       '<div class="auth-tabs">'+
         '<button class="auth-tab'+(isLogin?' active':'')+'" onclick="setAuthTab(\'login\')">Вход</button>'+
@@ -1629,6 +1770,7 @@
         confirmFieldHtml+
         '<div class="auth-error" id="auth-error"></div>'+
         '<button class="auth-submit" onclick="submitAuthForm(\''+(isLogin?'login':'register')+'\')">'+(isLogin?'Войти':'Зарегистрироваться')+'</button>'+
+        consentHtml+
       '</div>'+
       '<div class="fineprint">Без входа профиль собаки сохраняется только в этом браузере. Войдите или зарегистрируйтесь, чтобы не потерять данные при смене устройства.</div>';
   }
