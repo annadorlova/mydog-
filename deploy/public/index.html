@@ -1104,6 +1104,15 @@
     block3Filter = (block3Filter === key) ? null : key;
     renderBlock3();
   }
+  var block3IgnoreAge = true;
+  function block3ShowAllAges(){
+    block3IgnoreAge = true;
+    renderBlock3();
+  }
+  function block3RestoreAgeFilter(){
+    block3IgnoreAge = false;
+    renderBlock3();
+  }
 
   var AGE_STAGES = [
     {key:"2", label:"2 мес"},
@@ -1459,7 +1468,8 @@
     var all = TOPICS.filter(function(t){ return t.section==="Мы берём щенка"; });
     var items = all;
     if(block3Filter) items = items.filter(function(t){ return t.cat === block3Filter; });
-    if(selectedAge) items = items.filter(function(t){ return !t.ages || t.ages.indexOf(selectedAge) > -1; });
+    var ageFilterActive = !!(selectedAge && !block3IgnoreAge);
+    if(ageFilterActive) items = items.filter(function(t){ return !t.ages || t.ages.indexOf(selectedAge) > -1; });
     var filtersHtml = '<button class="catchip" data-cat="all"'+(!block3Filter?' style="border-color:var(--accent);color:var(--ink)"':'')+' onclick="setBlock3Filter(null)">Все</button>' +
       BLOCK3_CATS.map(function(c){
         return '<button class="catchip'+(block3Filter===c.key?' active':'')+'" data-cat="'+c.key+'" onclick="setBlock3Filter(\''+c.key+'\')"><span class="dot"></span>'+c.label+'</button>';
@@ -1469,7 +1479,11 @@
     if(selectedAge){
       var activeForNote = getActiveDog();
       var ageTextForNote = (activeForNote && activeForNote.dob) ? exactAgeText(computeStageFromDOB(activeForNote.dob).months) : bucketLabel(selectedAge);
-      noteText = 'Показаны карточки для возраста «'+ageTextForNote+'» — на основе профиля собаки на главной.';
+      if(ageFilterActive){
+        noteText = 'Показаны карточки для возраста «'+ageTextForNote+'» — на основе профиля собаки на главной. <a onclick="block3ShowAllAges()">Показать все карточки</a>';
+      } else {
+        noteText = 'Показаны карточки для всех возрастов. <a onclick="block3RestoreAgeFilter()">Показать только для «'+ageTextForNote+'»</a>';
+      }
     }
     document.getElementById('block3-age-note').innerHTML = noteText;
     document.getElementById('block3-list').innerHTML = items.map(function(t){ return cardHtmlFrom(t,'block3'); }).join('');
