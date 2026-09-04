@@ -297,6 +297,7 @@
   .pup-stage-desc .psd-text{ font-size:13px; line-height:1.5; color:var(--ink-soft); }
   .pup-cmd-intro{ font-size:12.5px; line-height:1.5; color:var(--ink-soft); margin-bottom:8px; }
   .pup-cmd-checklist{ display:flex; flex-direction:column; gap:8px; }
+  .pup-cmd-checklist.two-col{ display:grid; grid-template-columns:1fr 1fr; column-gap:14px; row-gap:8px; }
   .pup-cmd-item{ display:flex; align-items:flex-start; gap:9px; cursor:pointer; }
   .pup-cmd-item input{ flex:none; width:17px; height:17px; margin-top:2px; accent-color:var(--dog); cursor:pointer; }
   .pup-cmd-item-body{ display:flex; flex-direction:column; gap:2px; }
@@ -1382,8 +1383,9 @@
         '<span class="pup-cmd-item-body"><span class="pup-cmd-name">'+c.name+'</span>'+(c.note?'<span class="pup-cmd-note">'+c.note+'</span>':'')+'</span>'+
       '</label>';
     }).join('');
+    var listClass = 'pup-cmd-checklist' + (cmdList.length > 6 ? ' two-col' : '');
     return (introText ? '<div class="pup-cmd-intro">'+introText+'</div>' : '') +
-      '<div class="pup-cmd-checklist">'+itemsHtml+'</div>'+
+      '<div class="'+listClass+'">'+itemsHtml+'</div>'+
       '<div class="pup-cmd-progress">Освоено '+doneCount+' из '+cmdList.length+'</div>';
   }
   function getActiveDog(){
