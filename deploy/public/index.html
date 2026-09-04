@@ -1330,21 +1330,19 @@
     syncDogsToServer();
   }
 
-  // --- Освоенные команды по собакам: {dogId: {commandId: true}} — хранится отдельно от
-  // профиля собаки, только в этом браузере. Пока не синхронизируется между устройствами
-  // при входе в аккаунт (в отличие от профиля собаки, который синхронизируется через сервер).
-  var pupCommandsMastered = {};
-  try{ pupCommandsMastered = JSON.parse(localStorage.getItem('pupCommandsV1') || '{}') || {}; }catch(e){ pupCommandsMastered = {}; }
-  function savePupCommands(){
-    try{ localStorage.setItem('pupCommandsV1', JSON.stringify(pupCommandsMastered)); }catch(e){}
-  }
+  // --- Освоенные команды по собакам: хранятся как поле "commands" ({commandId: true}) прямо
+  // в профиле собаки — так же, как имя, дата рождения и фото, поэтому синхронизируются между
+  // устройствами через savePupDogs()/сервер, а не отдельным ключом только в этом браузере.
   function isCommandMastered(dogId, cmdId){
-    return !!(pupCommandsMastered[dogId] && pupCommandsMastered[dogId][cmdId]);
+    var dog = pupDogs.filter(function(d){ return d.id===dogId; })[0];
+    return !!(dog && dog.commands && dog.commands[cmdId]);
   }
   function toggleCommandMastered(dogId, cmdId){
-    if(!pupCommandsMastered[dogId]) pupCommandsMastered[dogId] = {};
-    pupCommandsMastered[dogId][cmdId] = !pupCommandsMastered[dogId][cmdId];
-    savePupCommands();
+    var dog = pupDogs.filter(function(d){ return d.id===dogId; })[0];
+    if(!dog) return;
+    if(!dog.commands) dog.commands = {};
+    dog.commands[cmdId] = !dog.commands[cmdId];
+    savePupDogs();
     renderPupCabinet();
   }
   function commandChecklistHtml(dogId, cmdList, introText){
