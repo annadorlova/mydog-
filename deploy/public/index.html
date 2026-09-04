@@ -306,6 +306,15 @@
   .pup-cmd-note{ font-size:11.5px; line-height:1.45; color:var(--ink-faint); }
   .pup-cmd-progress{ font-size:11px; color:var(--ink-faint); margin-top:8px; }
   .search-note{ font-size:12px; color:var(--ink-faint); background:var(--panel-bg); border-radius:10px; padding:10px 12px; line-height:1.5; margin-top:auto; }
+  .stub-wrap{ display:flex; flex-direction:column; align-items:center; text-align:center; padding:64px 24px 24px; gap:14px; }
+  .stub-emoji{ font-size:52px; line-height:1; }
+  .stub-title-big{ font-family:'Fraunces',serif; font-weight:600; font-size:19px; color:var(--ink); }
+  .stub-text{ font-size:13.5px; line-height:1.55; color:var(--ink-faint); max-width:280px; }
+  .guest-toast{ position:absolute; left:12px; right:12px; bottom:82px; z-index:60; background:var(--surface-raised); border:1px solid var(--line); border-radius:14px; padding:13px 14px; box-shadow:0 10px 24px var(--shadow); display:flex; flex-direction:column; gap:9px; }
+  .guest-toast-text{ font-size:12.5px; line-height:1.5; color:var(--ink); padding-right:18px; }
+  .guest-toast-close{ position:absolute; top:8px; right:8px; border:none; background:none; color:var(--ink-faint); font-size:13px; cursor:pointer; line-height:1; padding:4px; }
+  .guest-toast-actions{ display:flex; }
+  .guest-toast-actions a{ font-size:12.5px; font-weight:700; color:var(--accent); cursor:pointer; }
   .result-hit{ border:1px solid var(--dog); background:var(--dog-soft); border-radius:14px; padding:14px; cursor:pointer; margin-bottom:12px; }
   .result-hit .lbl{ font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--dog); }
   .result-hit .ttl{ font-size:14px; font-weight:600; color:var(--ink); margin-top:4px; }
@@ -467,6 +476,14 @@
           <div class="screen-scroll" id="block5-body"></div>
         </section>
 
+        <section class="screen" id="view-stub">
+          <div class="topbar">
+            <button class="iconbtn" onclick="showView('home')" aria-label="Назад"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            <h2 id="stub-title" style="font-size:15px"></h2>
+          </div>
+          <div class="screen-scroll" id="stub-body"></div>
+        </section>
+
         <section class="screen" id="view-detail">
           <div class="topbar">
             <button class="iconbtn" onclick="backFromDetail()" aria-label="Назад"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
@@ -504,6 +521,12 @@
           </div>
         </section>
 
+      </div>
+
+      <div class="guest-toast" id="guest-toast" hidden>
+        <button class="guest-toast-close" onclick="dismissGuestToast()" aria-label="Закрыть">✕</button>
+        <div class="guest-toast-text">Пройдите регистрацию, чтобы ваши данные сохранились</div>
+        <div class="guest-toast-actions"><a onclick="goToRegisterFromToast()">Зарегистрироваться</a></div>
       </div>
 
       <div class="bottomnav" id="bottomnav">
@@ -1058,11 +1081,11 @@
              '</button>';
     }).join('');
     html += '<div class="menu-photo-block">'+
-            '<div class="menu-photo-row" onclick="showView(\'block5\')">'+
+            '<div class="menu-photo-row" onclick="showStub(\'Тренинг онлайн с аусятами\')">'+
             (TRAINING_PHOTO ? '<img src="'+TRAINING_PHOTO+'" alt="Ханни и Мону">' : '<div class="mpplaceholder">фото<br>Ханни и Мону</div>')+
             '<div class="mptext">Каждый день получай набор упражнений, которые будут делать Ханни и Мона, тренируй свою собаку вместе с нами.</div>'+
             '</div>'+
-            '<button class="cta-small" onclick="showView(\'block5\')">Хочу тренироваться вместе</button>'+
+            '<button class="cta-small" onclick="showStub(\'Тренинг онлайн с аусятами\')">Хочу тренироваться вместе</button>'+
             '</div>';
     html += '<div class="menu-photo-block">'+
             '<div class="menu-photo-row">'+
@@ -1070,7 +1093,7 @@
             '<div class="mptext">Я знаю, что найти своего кинолога не так просто, а вопросы накапливаются регулярно. Хочу дать вам возможность задавать их сразу, как они появляются, и получать квалифицированные ответы.</div>'+
             '</div>'+
             '<div class="mpnote">Данная опция доступна по подписке Pro</div>'+
-            '<button class="cta-small" onclick="showView(\'paywall\')">Задай вопрос кинологу</button>'+
+            '<button class="cta-small" onclick="showStub(\'Вопрос кинологу\')">Задай вопрос кинологу</button>'+
             '</div>';
     document.getElementById('home-menu').innerHTML = html;
   }
@@ -1476,7 +1499,7 @@
         }
         var esc = function(s){ return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); };
         if(d.id===activeDogId){
-          return '<div class="dogchip active">'+avatarHtml+'<input type="text" id="dogchip-name-'+d.id+'" class="dogchip-name-input" value="'+esc(d.name)+'" placeholder="Имя" onchange="setPupName(this.value)"></div>';
+          return '<div class="dogchip active">'+avatarHtml+'<input type="text" id="dogchip-name-'+d.id+'" class="dogchip-name-input" value="'+esc(d.name)+'" placeholder="Имя" oninput="maybeShowGuestToast()" onchange="setPupName(this.value)"></div>';
         }
         return '<div class="dogchip" onclick="setActiveDog(\''+d.id+'\')">'+avatarHtml+'<span>'+(d.name || ('Собака '+(i+1)))+'</span></div>';
       }).join('') + '<div class="dogchip dogchip-add" onclick="addPupDog()">+ Добавить собаку</div>';
@@ -1646,11 +1669,11 @@
     html += '<div class="cmd-group"><div class="cgtitle"><span class="cgicon">🎓</span>Трюковые команды для интеллектуальной тренировки собаки</div>'+
             '<div class="cmd-placeholder">Список пришлите, и я добавлю его сюда.</div></div>';
     html += '<div class="menu-photo-block" style="margin-top:20px">'+
-            '<div class="menu-photo-row" onclick="showView(\'block5\')">'+
+            '<div class="menu-photo-row" onclick="showStub(\'Тренинг онлайн с аусятами\')">'+
             (TRAINING_PHOTO ? '<img src="'+TRAINING_PHOTO+'" alt="Ханни и Мону">' : '<div class="mpplaceholder">фото<br>Ханни и Мону</div>')+
             '<div class="mptext">Каждый день получай набор упражнений, которые будут делать Ханни и Мона, тренируй свою собаку вместе с нами.</div>'+
             '</div>'+
-            '<button class="cta-small" onclick="showView(\'block5\')">Хочу тренироваться вместе</button>'+
+            '<button class="cta-small" onclick="showStub(\'Тренинг онлайн с аусятами\')">Хочу тренироваться вместе</button>'+
             '</div>';
     document.getElementById('block4-body').innerHTML = html;
   }
@@ -1800,6 +1823,39 @@
     server_error: 'Сервер сейчас недоступен, попробуйте позже',
     network_error: 'Не получилось связаться с сервером — проверьте соединение'
   };
+
+  var guestToastDismissed = false;
+  try{ guestToastDismissed = localStorage.getItem('guestToastDismissed') === '1'; }catch(e){}
+  function maybeShowGuestToast(){
+    if(realAuthUser || guestToastDismissed) return;
+    var el = document.getElementById('guest-toast');
+    if(el) el.hidden = false;
+  }
+  function dismissGuestToast(){
+    var el = document.getElementById('guest-toast');
+    if(el) el.hidden = true;
+    guestToastDismissed = true;
+    try{ localStorage.setItem('guestToastDismissed', '1'); }catch(e){}
+  }
+  function goToRegisterFromToast(){
+    dismissGuestToast();
+    authTab = 'register';
+    showView('profile');
+    renderAuthBlock();
+  }
+  function showStub(title){
+    var titleEl = document.getElementById('stub-title');
+    if(titleEl) titleEl.textContent = title;
+    var bodyEl = document.getElementById('stub-body');
+    if(bodyEl){
+      bodyEl.innerHTML = '<div class="stub-wrap">'+
+        '<div class="stub-emoji">🐶🛠️</div>'+
+        '<div class="stub-title-big">Раздел в разработке</div>'+
+        '<div class="stub-text">Наш пёс-мастер уже здесь всё чинит — раздел скоро заработает. Загляните чуть позже!</div>'+
+      '</div>';
+    }
+    showView('stub');
+  }
 
   function setAuthTab(tab){
     authTab = tab;
