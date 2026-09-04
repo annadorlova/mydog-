@@ -1265,6 +1265,28 @@
       commands: ALL_TAUGHT_COMMANDS
     }
   };
+  // Помесячные этапы, которые реально вводят новые команды (2..11) — стадии "12" и "1+" сами
+  // новых команд не вводят, а показывают сводный обзор уже введённых, поэтому в накопление не
+  // участвуют как источник (иначе их note-less записи в ALL_TAUGHT_COMMANDS затёрли бы конкретные
+  // пояснения из более ранних месяцев).
+  var REAL_MONTH_STAGES = ["2","3","4","5","6","7","8","9","10","11"];
+  // Собирает список команд для чек-листа "Какие команды подойдут" накопительно: команды из всех
+  // предыдущих месяцев (уже отмеченные — остаются отмеченными) плюс новые команды текущего месяца
+  // (пока без галочки) — как карта заполнения навыков, а не список только этого месяца.
+  function cumulativeCommandsForStage(stageKey){
+    var idx = REAL_MONTH_STAGES.indexOf(stageKey);
+    if(idx===-1) idx = REAL_MONTH_STAGES.length-1; // "12" и "1+" — показываем весь накопленный список
+    var map = {}, seq = [];
+    for(var i=0;i<=idx;i++){
+      var stageCommands = STAGE_INFO[REAL_MONTH_STAGES[i]] && STAGE_INFO[REAL_MONTH_STAGES[i]].commands;
+      if(!stageCommands) continue;
+      stageCommands.forEach(function(c){
+        if(!map[c.id]) seq.push(c.id);
+        map[c.id] = c; // более поздний месяц обновляет пояснение той же команды
+      });
+    }
+    return seq.map(function(id){ return map[id]; });
+  }
   var selectedAge = null;
   function ageLabel(key){
     var found = AGE_STAGES.filter(function(a){ return a.key===key; })[0];
@@ -1478,7 +1500,7 @@
           '<div class="pup-stage-desc">'+
           '<div class="psd-item"><div class="psd-label">Поведение</div><div class="psd-text">'+infoNoDob.behavior+'</div></div>'+
           '<div class="psd-item"><div class="psd-label">Физическое развитие</div><div class="psd-text">'+infoNoDob.physical+'</div></div>'+
-          '<div class="psd-item"><div class="psd-label">Какие команды подойдут</div>'+commandChecklistHtml(dogIdNoDob, infoNoDob.commands, infoNoDob.commandsIntro)+'</div>'+
+          '<div class="psd-item"><div class="psd-label">Какие команды подойдут</div>'+commandChecklistHtml(dogIdNoDob, cumulativeCommandsForStage(previewKeyNoDob), infoNoDob.commandsIntro)+'</div>'+
           '</div>';
       }
       widgetEl.innerHTML = noDobHtml;
@@ -1527,7 +1549,7 @@
     html += '<div class="pup-stage-desc">'+
       '<div class="psd-item"><div class="psd-label">Поведение</div><div class="psd-text">'+info.behavior+'</div></div>'+
       '<div class="psd-item"><div class="psd-label">Физическое развитие</div><div class="psd-text">'+info.physical+'</div></div>'+
-      '<div class="psd-item"><div class="psd-label">Какие команды подойдут</div>'+commandChecklistHtml(active.id, info.commands, info.commandsIntro)+'</div>'+
+      '<div class="psd-item"><div class="psd-label">Какие команды подойдут</div>'+commandChecklistHtml(active.id, cumulativeCommandsForStage(previewKey), info.commandsIntro)+'</div>'+
       '</div>';
     widgetEl.innerHTML = html;
     if(pupPreviewChipsOpen){
