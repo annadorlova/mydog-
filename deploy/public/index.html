@@ -310,7 +310,7 @@
   .stub-emoji{ font-size:52px; line-height:1; }
   .stub-title-big{ font-family:'Fraunces',serif; font-weight:600; font-size:19px; color:var(--ink); }
   .stub-text{ font-size:13.5px; line-height:1.55; color:var(--ink-faint); max-width:280px; }
-  .guest-toast{ position:absolute; left:12px; right:12px; bottom:82px; z-index:60; background:var(--surface-raised); border:1px solid var(--line); border-radius:14px; padding:13px 14px; box-shadow:0 10px 24px var(--shadow); display:flex; flex-direction:column; gap:9px; }
+  .guest-toast{ position:absolute; left:12px; right:12px; top:14px; z-index:60; background:var(--surface-raised); border:1px solid var(--line); border-radius:14px; padding:13px 14px; box-shadow:0 10px 24px var(--shadow); display:flex; flex-direction:column; gap:9px; }
   .guest-toast[hidden]{ display:none; }
   .guest-toast-text{ font-size:12.5px; line-height:1.5; color:var(--ink); padding-right:18px; }
   .guest-toast-close{ position:absolute; top:8px; right:8px; border:none; background:none; color:var(--ink-faint); font-size:13px; cursor:pointer; line-height:1; padding:4px; }
@@ -1826,7 +1826,7 @@
   };
 
   var guestToastDismissed = false;
-  try{ guestToastDismissed = localStorage.getItem('guestToastDismissed') === '1'; }catch(e){}
+  try{ guestToastDismissed = sessionStorage.getItem('guestToastDismissed') === '1'; }catch(e){}
   function maybeShowGuestToast(){
     if(realAuthUser || guestToastDismissed) return;
     var el = document.getElementById('guest-toast');
@@ -1836,7 +1836,7 @@
     var el = document.getElementById('guest-toast');
     if(el) el.hidden = true;
     guestToastDismissed = true;
-    try{ localStorage.setItem('guestToastDismissed', '1'); }catch(e){}
+    try{ sessionStorage.setItem('guestToastDismissed', '1'); }catch(e){}
   }
   function goToRegisterFromToast(){
     dismissGuestToast();
