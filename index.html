@@ -321,9 +321,11 @@
   .finds-card.f6{ background:var(--sage); color:var(--dark); }
 
   /* ================= PRODUCT LIST (category subpages) ================= */
-  .product-list{ display:flex; flex-direction:column; gap:22px; }
+  .product-list{ display:grid; grid-template-columns:repeat(3,1fr); gap:22px; }
+  @media (max-width:900px){ .product-list{ grid-template-columns:repeat(2,1fr); } }
+  @media (max-width:600px){ .product-list{ grid-template-columns:1fr; } }
   .product-card{
-    background:var(--cream-deep); border-radius:18px; padding:22px; max-width:520px;
+    background:var(--cream-deep); border-radius:18px; padding:22px;
   }
   .product-card-photo{ width:100%; aspect-ratio:900/527; border-radius:14px; overflow:hidden; background:#fff; margin-bottom:18px; }
   .product-card-photo img{ width:100%; height:100%; object-fit:cover; display:block; }
