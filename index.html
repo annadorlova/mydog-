@@ -1092,12 +1092,32 @@
 
 <script>
   var ALL_VIEWS = ['view-home', 'view-family', 'view-puppy', 'view-finds', 'view-clothes', 'view-beds', 'view-accessories', 'view-leashes'];
-  function showView(id){
+  var VIEW_SLUGS = {
+    'view-home': '',
+    'view-family': 'semya',
+    'view-puppy': 'shchenok',
+    'view-finds': 'nahodki',
+    'view-clothes': 'odezhda',
+    'view-beds': 'lezhanki',
+    'view-accessories': 'aksessuary',
+    'view-leashes': 'povodki'
+  };
+  var SLUG_TO_VIEW = {};
+  ALL_VIEWS.forEach(function(v){ SLUG_TO_VIEW[VIEW_SLUGS[v]] = v; });
+
+  function showView(id, skipHash){
     ALL_VIEWS.forEach(function(v){
       var el = document.getElementById(v);
       if(el) el.hidden = (v !== id);
     });
     window.scrollTo(0,0);
+    if(!skipHash){
+      var slug = VIEW_SLUGS[id] || '';
+      var target = slug ? ('#' + slug) : '#';
+      if(window.location.hash !== target){
+        history.pushState(null, '', target || window.location.pathname + window.location.search);
+      }
+    }
   }
   function showFamily(){ showView('view-family'); }
   function showPuppy(){ showView('view-puppy'); }
@@ -1107,6 +1127,15 @@
   function showAccessories(){ showView('view-accessories'); }
   function showLeashes(){ showView('view-leashes'); }
   function showHome(){ showView('view-home'); }
+
+  function routeFromHash(){
+    var slug = window.location.hash.replace(/^#/, '');
+    var view = SLUG_TO_VIEW.hasOwnProperty(slug) ? SLUG_TO_VIEW[slug] : 'view-home';
+    showView(view, true);
+  }
+  window.addEventListener('popstate', routeFromHash);
+  window.addEventListener('hashchange', routeFromHash);
+  routeFromHash();
   var MONTH_INFO = {
     "2": {
       behavior:"Пик социализации: щенок особенно легко и надолго запоминает первый опыт — знакомства с людьми, другими собаками, звуками, новыми местами. Хорошо, если этот опыт в основном позитивный.",
