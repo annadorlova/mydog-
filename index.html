@@ -358,8 +358,10 @@
 
 
   /* Мобильный режим: показываем десктопную вёрстку, уменьшенную по ширине экрана */
-  #scale-wrap{ width:900px; transform-origin:top left; }
-  #scale-wrap .wrap{ max-width:900px; }
+  @media (max-width:899px){
+    #scale-wrap{ width:900px; transform-origin:top left; }
+    #scale-wrap .wrap{ max-width:900px; }
+  }
 </style>
 
 <!-- Yandex.Metrika counter -->
